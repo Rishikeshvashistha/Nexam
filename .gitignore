@@ -30,3 +30,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+src/main/resources/application.properties
+
+
+uploads/
+data/
+screenshots/
+.DS_Store
+*.log

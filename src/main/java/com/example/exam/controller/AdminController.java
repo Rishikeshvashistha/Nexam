@@ -31,14 +31,44 @@ public class AdminController {
     @Autowired
     private QuestionRepository questionRepository;
 
-
     @Autowired
     private ExamResultRepository examResultRepository;
+
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @GetMapping("/add-admin")
+    public String showAddAdminForm() {
+        return "admin/add-admin";
+    }
+
+    @PostMapping("/add-admin")
+    public String addAdmin(
+            @RequestParam String fullName,
+            @RequestParam String username,
+            @RequestParam String password) {
+
+        if (userRepository.existsByUsername(username)) {
+            return "redirect:/admin/add-admin?error";
+        }
+
+        User admin = new User();
+
+        admin.setFullName(fullName);
+        admin.setUsername(username);
+
+        admin.setPassword(
+                passwordEncoder.encode(password));
+
+        admin.setRole("ROLE_ADMIN");
+
+        userRepository.save(admin);
+
+        return "redirect:/admin/add-admin?success";
+    }
 
     @GetMapping("/dashboard")
     public String adminDashboard(Model model) {
@@ -66,13 +96,11 @@ public class AdminController {
         model.addAttribute("chartLabels", chartLabels);
         model.addAttribute("chartData", chartData);
 
-
         List<ExamResult> recentResults = examResultRepository.findTop5ByOrderBySubmissionTimeDesc();
         model.addAttribute("recentResults", recentResults);
 
         return "admin/dashboard";
     }
-
 
     @GetMapping("/manage-exams")
     public String getManageExamsPage(Model model) {
@@ -103,11 +131,10 @@ public class AdminController {
         return "admin/add_question";
     }
 
-
     @PostMapping("/exam/question/add")
     public String addQuestion(@ModelAttribute Question question,
-                              @RequestParam Long examId,
-                              RedirectAttributes redirectAttributes) {
+            @RequestParam Long examId,
+            RedirectAttributes redirectAttributes) {
 
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid exam Id:" + examId));
@@ -148,10 +175,12 @@ public class AdminController {
         model.addAttribute("exam", exam);
         return "admin/edit_exam";
     }
+
     /***
-     Subscribe Lazycoder - https://www.youtube.com/c/LazyCoderOnline?sub_confirmation=1
-     whatsapp - https://wa.me/919572181024
-     email - wapka1503@gmail.com
+     * Subscribe Lazycoder -
+     * https://www.youtube.com/c/LazyCoderOnline?sub_confirmation=1
+     * whatsapp - https://wa.me/919572181024
+     * email - wapka1503@gmail.com
      ***/
     @PostMapping("/exam/update/{examId}")
     public String updateExam(@PathVariable Long examId, @ModelAttribute Exam updatedExam) {
@@ -202,22 +231,23 @@ public class AdminController {
 
     @GetMapping("/exam/{examId}/question/delete/{questionId}")
     public String deleteQuestion(@PathVariable Long examId,
-                                 @PathVariable Long questionId,
-                                 RedirectAttributes redirectAttributes) { // <-- Added RedirectAttributes
+            @PathVariable Long questionId,
+            RedirectAttributes redirectAttributes) { // <-- Added RedirectAttributes
         try {
             questionRepository.deleteById(questionId);
             redirectAttributes.addFlashAttribute("successMessage", "Question deleted successfully.");
 
         } catch (DataIntegrityViolationException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cannot delete this question. It has already been answered by one or more students and is part of their exam results.");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Cannot delete this question. It has already been answered by one or more students and is part of their exam results.");
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "An unexpected error occurred while trying to delete the question.");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "An unexpected error occurred while trying to delete the question.");
         }
 
         return "redirect:/admin/exam/manage-questions/" + examId;
     }
-
 
     @GetMapping("/students")
     public String getManageStudentsPage(Model model) {
@@ -247,22 +277,24 @@ public class AdminController {
             // 4. NOW it is safe to delete the "parent" (User)
             userRepository.delete(student);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Student account and all associated results have been deleted.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Student account and all associated results have been deleted.");
 
         } catch (DataIntegrityViolationException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Could not delete student. A database integrity error occurred.");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Could not delete student. A database integrity error occurred.");
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "An error occurred while trying to delete the student account: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "An error occurred while trying to delete the student account: " + e.getMessage());
         }
         return "redirect:/admin/students";
     }
 
-
     @PostMapping("/student/reset-password")
     public String resetStudentPassword(@RequestParam("userId") Long userId,
-                                       @RequestParam("newPassword") String newPassword,
-                                       RedirectAttributes redirectAttributes) {
+            @RequestParam("newPassword") String newPassword,
+            RedirectAttributes redirectAttributes) {
 
         if (newPassword.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Password cannot be empty.");
@@ -277,11 +309,12 @@ public class AdminController {
             student.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(student);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Password for " + student.getUsername() + " has been reset.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Password for " + student.getUsername() + " has been reset.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "An error occurred while trying to reset the password.");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "An error occurred while trying to reset the password.");
         }
         return "redirect:/admin/students";
     }
 }
-
