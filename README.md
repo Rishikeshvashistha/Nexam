@@ -72,7 +72,7 @@ The platform provides a secure and user-friendly environment for **Admins** and 
 |------|--------------------------------------------|
 | Backend | Spring Boot 3, Spring Security 6           |
 | Frontend | Thymeleaf, Html, Bootstrap 5, Chart.js     |
-| Database | H2 (file-based) (configurable to other DB) |
+| Database | MySQl |
 | ORM | Hibernate / JPA                            |
 | Build | Maven                                      |
 | Storage | Local File System for images               |
